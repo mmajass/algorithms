@@ -1,0 +1,37 @@
+name: Validate submission
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+
+jobs:
+  validate-submission:
+    name: Validate submission
+    # The source template contains blank predictions. Validate submissions in
+    # the private assignment repositories created from it.
+    if: ${{ github.repository != 'deploy-co-recruitment/template-planning-assessment' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check pull request title
+        env:
+          PULL_REQUEST_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if [ "$PULL_REQUEST_TITLE" != "Submission" ]; then
+            echo "::error::Name this pull request exactly: Submission"
+            exit 1
+          fi
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate submission
+        run: python scripts/validate_submission.py
